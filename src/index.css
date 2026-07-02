@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+@theme {
+  --color-indigo-50: #f6eaef;
+  --color-indigo-100: #ead3df;
+  --color-indigo-200: #d6abc2;
+  --color-indigo-300: #bd7b9e;
+  --color-indigo-400: #9e4a77;
+  --color-indigo-500: #86305a;
+  --color-indigo-600: #58112E;
+  --color-indigo-700: #4c1129;
+  --color-indigo-800: #421125;
+  --color-indigo-900: #36101f;
+  --color-indigo-950: #250511;
+}
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+@layer utilities {
+  .animate-floating-3d {
+    animation: floating-3d 6s ease-in-out infinite;
+    transform-style: preserve-3d;
+  }
+  
+  @keyframes floating-3d {
+    0% { 
+      transform: perspective(1200px) rotateX(12deg) rotateY(-12deg) translateY(0); 
+      box-shadow: -20px 30px 60px rgba(0, 0, 0, 0.1); 
+    }
+    50% { 
+      transform: perspective(1200px) rotateX(16deg) rotateY(-8deg) translateY(-24px); 
+      box-shadow: -30px 50px 80px rgba(0, 0, 0, 0.15); 
+    }
+    100% { 
+      transform: perspective(1200px) rotateX(12deg) rotateY(-12deg) translateY(0); 
+      box-shadow: -20px 30px 60px rgba(0, 0, 0, 0.1); 
+    }
+  }
+
+  .floating-layer-1 {
+    transform: translateZ(50px);
+  }
+  
+  .floating-layer-2 {
+    transform: translateZ(100px);
+  }
+
+  /* Background Blob Animation */
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+
+  @keyframes blob {
+    0% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(0px, 0px) scale(1); }
+  }
+
+  /* Text Gradient Animation */
+  .animate-gradient-x {
+    background-size: 200% 200%;
+    animation: gradient-x 3s ease infinite;
+  }
+
+  @keyframes gradient-x {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Fade In Up */
+  .animate-fade-in-up {
+    animation: fade-in-up 0.8s ease-out forwards;
+    opacity: 0;
+  }
+
+  @keyframes fade-in-up {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Delays */
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+}
