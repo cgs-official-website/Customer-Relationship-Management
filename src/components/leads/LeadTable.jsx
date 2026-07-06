@@ -63,8 +63,9 @@ const LeadTable = ({ leads, onStatusChange, onDelete, onEdit, onView, usersMap =
           <tbody className="divide-y divide-gray-50">
             {rows.map((lead) => {
               const p = PLATFORMS[lead.platform?.toLowerCase()] || { label: lead.platform || 'Direct', cls: 'bg-gray-100 text-gray-600 border-gray-200', Icon: Monitor };
+              const isFollowUp = lead.currentStatus === 'Follow Up';
               return (
-                <tr key={lead.id} onClick={() => onView?.(lead)} className="hover:bg-indigo-50/40 transition-colors group cursor-pointer">
+                <tr key={lead.id} onClick={() => onView?.(lead)} className={`transition-colors group cursor-pointer ${isFollowUp ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'hover:bg-indigo-50/40'}`}>
                   {/* Selection */}
                   <td className="px-3 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                     <input
@@ -87,11 +88,11 @@ const LeadTable = ({ leads, onStatusChange, onDelete, onEdit, onView, usersMap =
                         <span className="text-sm font-bold text-indigo-700">{getInitials(lead.name)}</span>
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-gray-900 truncate max-w-[250px]" title={lead.name}>{lead.name}</p>
+                        <p className={`text-sm font-bold truncate max-w-[250px] ${isFollowUp ? 'text-white' : 'text-gray-900'}`} title={lead.name}>{lead.name}</p>
                         <div className="flex items-center gap-3 mt-1">
-                          <span className="flex items-center gap-1 text-[11px] text-gray-500 font-medium"><Phone className="w-3 h-3" /> {lead.phone}</span>
+                          <span className={`flex items-center gap-1 text-[11px] font-medium ${isFollowUp ? 'text-indigo-100' : 'text-gray-500'}`}><Phone className="w-3 h-3" /> {lead.phone}</span>
                           {usersMap[lead.userId] && (
-                            <span className="flex items-center gap-1 text-[11px] text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                            <span className={`flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded border ${isFollowUp ? 'bg-indigo-500 text-white border-indigo-400' : 'text-indigo-600 bg-indigo-50 border-indigo-100'}`}>
                               By: {usersMap[lead.userId]}
                             </span>
                           )}
@@ -103,30 +104,30 @@ const LeadTable = ({ leads, onStatusChange, onDelete, onEdit, onView, usersMap =
                   {/* Location */}
                   <td className="px-3 py-4 whitespace-nowrap">
                     {lead.city ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-50 border border-gray-100 text-xs font-semibold text-gray-600">
-                        <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-semibold ${isFollowUp ? 'bg-indigo-500 text-white border-indigo-400' : 'bg-gray-50 text-gray-600 border-gray-100'}`}>
+                        <MapPin className={`w-3.5 h-3.5 ${isFollowUp ? 'text-indigo-100' : 'text-gray-400'}`} />
                         {lead.city}
                       </span>
-                    ) : <span className="text-gray-300 text-xs font-medium">—</span>}
+                    ) : <span className={`text-xs font-medium ${isFollowUp ? 'text-indigo-200' : 'text-gray-300'}`}>—</span>}
                   </td>
 
                   {/* NEET Details */}
                   <td className="px-3 py-4 whitespace-nowrap">
                     <div className="flex flex-col gap-1.5">
                       {lead.neetStatus ? (
-                        <span className="text-xs font-bold text-gray-800">{NEET_LABELS[lead.neetStatus] || lead.neetStatus}</span>
-                      ) : <span className="text-gray-300 text-xs">—</span>}
+                        <span className={`text-xs font-bold ${isFollowUp ? 'text-white' : 'text-gray-800'}`}>{NEET_LABELS[lead.neetStatus] || lead.neetStatus}</span>
+                      ) : <span className={`text-xs ${isFollowUp ? 'text-indigo-200' : 'text-gray-300'}`}>—</span>}
                       
                       <div className="flex items-center gap-2">
-                        {lead.neetScore && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">Score: {lead.neetScore}</span>}
-                        {lead.hostelRequired === 'yes' && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center gap-1"><Home className="w-2.5 h-2.5"/> Hostel</span>}
+                        {lead.neetScore && <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${isFollowUp ? 'bg-indigo-500 text-white border-indigo-400' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>Score: {lead.neetScore}</span>}
+                        {lead.hostelRequired === 'yes' && <span className={`px-2 py-0.5 rounded text-[10px] font-bold border flex items-center gap-1 ${isFollowUp ? 'bg-emerald-500 text-white border-emerald-400' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}><Home className="w-2.5 h-2.5"/> Hostel</span>}
                       </div>
                     </div>
                   </td>
 
                   {/* Campaign Source */}
                   <td className="px-3 py-4 whitespace-nowrap">
-                    <p className="text-xs font-bold text-gray-700 truncate max-w-[160px]" title={lead.campaignName}>{lead.campaignName || lead.source || '—'}</p>
+                    <p className={`text-xs font-bold truncate max-w-[160px] ${isFollowUp ? 'text-white' : 'text-gray-700'}`} title={lead.campaignName}>{lead.campaignName || lead.source || '—'}</p>
                     {lead.platform && (
                       <span className={`mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-sm ${p.cls}`}>
                         <p.Icon className="w-3 h-3" />{p.label}
@@ -148,7 +149,7 @@ const LeadTable = ({ leads, onStatusChange, onDelete, onEdit, onView, usersMap =
                   </td>
 
                   {/* Date */}
-                  <td className="px-3 py-4 whitespace-nowrap text-xs font-medium text-gray-400">
+                  <td className={`px-3 py-4 whitespace-nowrap text-xs font-medium ${isFollowUp ? 'text-indigo-100' : 'text-gray-400'}`}>
                     {lead.createdAt?.seconds
                       ? new Date(lead.createdAt.seconds * 1000).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
                       : '—'}
@@ -157,10 +158,10 @@ const LeadTable = ({ leads, onStatusChange, onDelete, onEdit, onView, usersMap =
                   {/* Actions */}
                   <td className="px-3 py-4 whitespace-nowrap text-right" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={(e) => { e.stopPropagation(); onView?.(lead); }} className="p-2 rounded-xl text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500" title="View Details">
+                      <button onClick={(e) => { e.stopPropagation(); onView?.(lead); }} className={`p-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isFollowUp ? 'text-indigo-100 hover:text-white hover:bg-indigo-500' : 'text-gray-400 hover:text-indigo-600 hover:bg-indigo-50'}`} title="View Details">
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button onClick={(e) => { e.stopPropagation(); onEdit(lead); }} className="p-2 rounded-xl text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-all focus:outline-none focus:ring-2 focus:ring-amber-500" title="Edit Lead">
+                      <button onClick={(e) => { e.stopPropagation(); onEdit?.(lead); }} className={`p-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isFollowUp ? 'text-indigo-100 hover:text-white hover:bg-indigo-500' : 'text-gray-400 hover:text-indigo-600 hover:bg-indigo-50'}`} title="Edit Lead">
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button onClick={(e) => { e.stopPropagation(); onDelete(lead.id); }} className="p-2 rounded-xl text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all focus:outline-none focus:ring-2 focus:ring-red-500" title="Delete Lead">

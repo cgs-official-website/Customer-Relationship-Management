@@ -173,8 +173,8 @@ const LeadModal = ({ lead, onClose, onSave, usersMap = {} }) => {
                 <div>
                   <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Conversion Status</label>
                   <select
-                    name="conversionStatus"
-                    value={form.conversionStatus || ''}
+                    name="currentStatus"
+                    value={form.currentStatus || ''}
                     onChange={handleChange}
                     className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-shadow"
                   >
@@ -183,6 +183,7 @@ const LeadModal = ({ lead, onClose, onSave, usersMap = {} }) => {
                     <option value="Not Admitted">Not Admitted</option>
                     <option value="Not Picked">Not Picked</option>
                     <option value="Waiting for Counselling">Waiting for Counselling</option>
+                    <option value="Follow Up">Follow Up</option>
                   </select>
                 </div>
               </div>
