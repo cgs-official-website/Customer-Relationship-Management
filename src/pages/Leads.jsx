@@ -90,6 +90,8 @@ const LeadModal = ({ lead, onClose, onSave, usersMap = {} }) => {
                     className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-shadow"
                   >
                     <option value="">Select Priority</option>
+                    <option value="Interested">Interested</option>
+                    <option value="Not Interested">Not Interested</option>
                     <option value="Hot">Hot</option>
                     <option value="Warm">Warm</option>
                     <option value="Cold">Cold</option>
@@ -106,9 +108,9 @@ const LeadModal = ({ lead, onClose, onSave, usersMap = {} }) => {
                     className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-shadow"
                   >
                     <option value="">Select Status</option>
-                    <option value="Hold">Hold</option>
-                    <option value="Not Converted">Not Converted</option>
-                    <option value="Converted">Converted</option>
+                    <option value="Admitted">Admitted</option>
+                    <option value="Not Admitted">Not Admitted</option>
+                    <option value="Waiting for Counselling">Waiting for Counselling</option>
                   </select>
                 </div>
               </div>
