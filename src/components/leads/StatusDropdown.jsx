@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { LEAD_STATUSES } from '../../utils/constants';
+import { LEAD_STATUSES, STATUS_COLORS } from '../../utils/constants';
 
 const StatusDropdown = ({ currentStatus, onStatusChange, disabled }) => {
   const currentIndex = LEAD_STATUSES.indexOf(currentStatus);
   const [loading, setLoading] = useState(false);
   
-  // A lead can only move forward in the workflow
-  const availableStatuses = LEAD_STATUSES.map((status, index) => ({
+  const availableStatuses = LEAD_STATUSES.map((status) => ({
     name: status,
-    disabled: index < currentIndex // Disable previous statuses
+    disabled: false // Allow editing to any status
   }));
 
   const handleChange = async (e) => {
@@ -20,13 +19,18 @@ const StatusDropdown = ({ currentStatus, onStatusChange, disabled }) => {
     }
   };
 
+  const colorClass = currentStatus && STATUS_COLORS[currentStatus] 
+    ? STATUS_COLORS[currentStatus] 
+    : 'bg-white text-gray-800';
+
   return (
     <select
-      value={currentStatus}
+      value={currentStatus || ''}
       onChange={handleChange}
       disabled={disabled || loading}
-      className={`block w-full pl-3 pr-10 py-1 text-xs border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md ${loading ? 'opacity-50' : ''}`}
+      className={`block w-full pl-3 pr-8 py-1.5 font-medium text-xs border-gray-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 rounded-md transition-colors ${loading ? 'opacity-50' : ''} ${colorClass}`}
     >
+      <option value="" disabled>Select Status</option>
       {availableStatuses.map((status) => (
         <option 
           key={status.name} 

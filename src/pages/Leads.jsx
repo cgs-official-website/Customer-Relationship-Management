@@ -13,8 +13,31 @@ import ConfirmDialog from '../components/ui/ConfirmDialog';
 const LeadModal = ({ lead, onClose, onSave, usersMap = {} }) => {
   const [form, setForm] = useState({ ...lead });
   const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [newNote, setNewNote] = useState('');
+
+  const [noteToDeleteIndex, setNoteToDeleteIndex] = useState(null);
 
   const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const handleAddNote = () => {
+    if (!newNote.trim()) return;
+    const noteEntry = {
+      text: newNote.trim(),
+      timestamp: new Date().toISOString()
+    };
+    setForm(prev => ({ ...prev, notes: [...(prev.notes || []), noteEntry] }));
+    setNewNote('');
+  };
+
+  const confirmDeleteNote = () => {
+    if (noteToDeleteIndex === null) return;
+    setForm(prev => ({
+      ...prev,
+      notes: prev.notes.filter((_, idx) => idx !== noteToDeleteIndex)
+    }));
+    setNoteToDeleteIndex(null);
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -23,54 +46,101 @@ const LeadModal = ({ lead, onClose, onSave, usersMap = {} }) => {
     onClose();
   };
 
-  const InfoItem = ({ label, value }) => (
+  const InfoItem = ({ label, value, name, type = 'text', options }) => (
     <div className="flex flex-col">
       <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">{label}</span>
-      <span className="text-sm font-semibold text-gray-800 mt-1">{value || '—'}</span>
+      {isEditing && name ? (
+        options ? (
+          <select
+            name={name}
+            value={form[name] || ''}
+            onChange={handleChange}
+            className="w-full px-2 py-1.5 mt-1 bg-white border border-gray-200 rounded text-sm font-medium text-gray-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          >
+            <option value="">Select {label}</option>
+            {Array.isArray(options) ? options.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            )) : Object.entries(options).map(([k, v]) => (
+              <option key={k} value={k}>{v}</option>
+            ))}
+          </select>
+        ) : (
+          <input
+            type={type}
+            name={name}
+            value={form[name] || ''}
+            onChange={handleChange}
+            className="w-full px-2 py-1.5 mt-1 bg-white border border-gray-200 rounded text-sm font-medium text-gray-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          />
+        )
+      ) : (
+        <span className="text-sm font-semibold text-gray-800 mt-1">{value || '—'}</span>
+      )}
     </div>
   );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gray-50/50 rounded-t-2xl">
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
-              {lead.name ? lead.name.charAt(0).toUpperCase() : '?'}
+          <div className="flex items-center gap-4 flex-1">
+            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
+              {form.name ? form.name.charAt(0).toUpperCase() : '?'}
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">{lead.name}</h2>
-              <p className="text-sm font-medium text-gray-500">{lead.phone} • {lead.email || 'No email'}</p>
+            <div className="flex-1 max-w-sm">
+              {isEditing ? (
+                <div className="space-y-1.5">
+                  <input type="text" name="name" value={form.name || ''} onChange={handleChange} className="w-full text-xl font-bold text-gray-900 border-b border-gray-300 focus:border-indigo-500 focus:outline-none bg-transparent" placeholder="Full Name" />
+                  <div className="flex gap-2">
+                    <input type="text" name="phone" value={form.phone || ''} onChange={handleChange} className="w-1/2 text-sm font-medium text-gray-500 border-b border-gray-300 focus:border-indigo-500 focus:outline-none bg-transparent" placeholder="Phone" />
+                    <span className="text-gray-400">•</span>
+                    <input type="email" name="email" value={form.email || ''} onChange={handleChange} className="w-1/2 text-sm font-medium text-gray-500 border-b border-gray-300 focus:border-indigo-500 focus:outline-none bg-transparent" placeholder="Email" />
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">{form.name}</h2>
+                  <p className="text-sm font-medium text-gray-500">{form.phone} • {form.email || 'No email'}</p>
+                </div>
+              )}
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors focus:outline-none">
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsEditing(!isEditing)} 
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${isEditing ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            >
+              {isEditing ? 'View Mode' : 'Edit Mode'}
+            </button>
+            <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors focus:outline-none">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
         <div className="p-6 overflow-y-auto flex-1">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-8">
             {/* Left Column: Lead Information */}
             <div className="space-y-6">
               <div>
                 <h3 className="text-sm font-bold text-indigo-900 border-b border-gray-100 pb-2 mb-4">Lead Information</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <InfoItem label="City" value={lead.city} />
-                  <InfoItem label="Platform" value={lead.platform} />
-                  <InfoItem label="Campaign Name" value={lead.campaignName} />
-                  <InfoItem label="Ad Name" value={lead.adName} />
-                  <InfoItem label="Assigned To" value={usersMap[lead.userId] || 'Unassigned'} />
+                  <InfoItem label="City" value={form.city} name="city" />
+                  <InfoItem label="Platform" value={form.platform} name="platform" options={[{value: 'ig', label: 'Instagram'}, {value: 'fb', label: 'Facebook'}]} />
+                  <InfoItem label="Campaign Name" value={form.campaignName} name="campaignName" />
+                  <InfoItem label="Ad Name" value={form.adName} name="adName" />
+                  <InfoItem label="Assigned To" value={usersMap[form.userId] || 'Unassigned'} name="userId" options={usersMap} />
                 </div>
               </div>
 
               <div>
                 <h3 className="text-sm font-bold text-indigo-900 border-b border-gray-100 pb-2 mb-4">NEET Details</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <InfoItem label="NEET Status" value={lead.neetStatus} />
-                  <InfoItem label="NEET Score" value={lead.neetScore} />
-                  <InfoItem label="Hostel Required" value={lead.hostelRequired === 'yes' ? 'Yes' : lead.hostelRequired === 'no' ? 'No' : 'Unknown'} />
+                  <InfoItem label="NEET Status" value={form.neetStatus} name="neetStatus" options={[{value: 'first_attempt', label: 'First Attempt'}, {value: 'repeater', label: 'Repeater'}, {value: 'second_repeater', label: '2nd Repeater'}]} />
+                  <InfoItem label="NEET Score" value={form.neetScore} name="neetScore" type="number" />
+                  <InfoItem label="Hostel Required" value={form.hostelRequired === 'yes' ? 'Yes' : form.hostelRequired === 'no' ? 'No' : 'Unknown'} name="hostelRequired" options={[{value: 'yes', label: 'Yes'}, {value: 'no', label: 'No'}]} />
                 </div>
               </div>
             </div>
@@ -92,6 +162,7 @@ const LeadModal = ({ lead, onClose, onSave, usersMap = {} }) => {
                     <option value="">Select Priority</option>
                     <option value="Interested">Interested</option>
                     <option value="Not Interested">Not Interested</option>
+                    <option value="Already Admitted">Already Admitted</option>
                     <option value="Hot">Hot</option>
                     <option value="Warm">Warm</option>
                     <option value="Cold">Cold</option>
@@ -110,6 +181,7 @@ const LeadModal = ({ lead, onClose, onSave, usersMap = {} }) => {
                     <option value="">Select Status</option>
                     <option value="Admitted">Admitted</option>
                     <option value="Not Admitted">Not Admitted</option>
+                    <option value="Not Picked">Not Picked</option>
                     <option value="Waiting for Counselling">Waiting for Counselling</option>
                   </select>
                 </div>
@@ -130,6 +202,55 @@ const LeadModal = ({ lead, onClose, onSave, usersMap = {} }) => {
                 </div>
               )}
             </div>
+
+            {/* Third Column: Notes */}
+            <div className="space-y-6 bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex flex-col">
+              <h3 className="text-sm font-bold text-indigo-900 border-b border-gray-200 pb-2 mb-4">Notes</h3>
+              
+              <div className="flex-1 overflow-y-auto space-y-3 max-h-[250px] pr-2">
+                {(form.notes || []).length === 0 ? (
+                  <p className="text-xs text-gray-400 text-center italic py-4">No notes added yet.</p>
+                ) : (
+                  (form.notes || []).map((note, idx) => (
+                    <div key={idx} className="group relative bg-gray-50 p-3 rounded-lg border border-gray-100 pr-8">
+                      <button 
+                        onClick={() => setNoteToDeleteIndex(idx)}
+                        className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-all focus:opacity-100 focus:outline-none"
+                        title="Delete note"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">{note.text}</p>
+                      <div className="mt-2 text-[10px] font-medium text-gray-400 text-right">
+                        {new Date(note.timestamp).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true, year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="pt-4 mt-auto border-t border-gray-100">
+                <textarea
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleAddNote();
+                    }
+                  }}
+                  placeholder="Type a new note... (Press Enter to add, Shift+Enter for new line)"
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 resize-none h-20"
+                />
+                <button
+                  onClick={handleAddNote}
+                  disabled={!newNote.trim()}
+                  className="mt-2 w-full px-4 py-2 text-sm font-bold bg-indigo-50 text-indigo-600 rounded-lg shadow-sm hover:bg-indigo-100 disabled:opacity-50 transition-all"
+                >
+                  Add Note
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -144,6 +265,17 @@ const LeadModal = ({ lead, onClose, onSave, usersMap = {} }) => {
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={noteToDeleteIndex !== null}
+        title="Delete Note"
+        message="Are you sure you want to delete this note?"
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="danger"
+        onConfirm={confirmDeleteNote}
+        onCancel={() => setNoteToDeleteIndex(null)}
+      />
     </div>
   );
 };
