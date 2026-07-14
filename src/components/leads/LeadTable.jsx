@@ -53,7 +53,7 @@ const LeadTable = ({ leads, onStatusChange, onDelete, onEdit, onView, usersMap =
                   }}
                 />
               </th>
-              {['Lead Profile', 'Location', 'NEET Details', 'Campaign Source', 'Pipeline Status', 'Date', ''].map((h, i) => (
+              {['Lead Profile', 'Location', 'NEET Details', 'Campaign Source', 'Upload Tag', 'Pipeline Status', 'Date', ''].map((h, i) => (
                 <th key={i} className="px-3 py-4 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   {h}
                 </th>
@@ -132,6 +132,17 @@ const LeadTable = ({ leads, onStatusChange, onDelete, onEdit, onView, usersMap =
                       <span className={`mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border shadow-sm ${p.cls}`}>
                         <p.Icon className="w-3 h-3" />{p.label}
                       </span>
+                    )}
+                  </td>
+
+                  {/* Upload Tag */}
+                  <td className="px-3 py-4 whitespace-nowrap">
+                    {lead.uploadTag ? (
+                      <span className="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                        {lead.uploadTag}
+                      </span>
+                    ) : (
+                      <span className={`text-xs ${isFollowUp ? 'text-indigo-200' : 'text-gray-300'}`}>—</span>
                     )}
                   </td>
 

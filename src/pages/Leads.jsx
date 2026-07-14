@@ -295,6 +295,7 @@ const Leads = () => {
   const [platformFilter, setPlatformFilter] = useState('');
   const [neetFilter, setNeetFilter] = useState('');
   const [assignedUserFilter, setAssignedUserFilter] = useState('');
+  const [uploadTagFilter, setUploadTagFilter] = useState('');
 
   const [selectedLead, setSelectedLead] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, leadId: null });
@@ -345,25 +346,53 @@ const Leads = () => {
       );
     }
     if (statusFilter) result = result.filter(l => l.currentStatus === statusFilter);
-    if (platformFilter) result = result.filter(l => l.platform?.toLowerCase() === platformFilter);
+    if (platformFilter) result = result.filter(l => l.platform === platformFilter);
     if (neetFilter) result = result.filter(l => l.neetStatus === neetFilter);
     if (assignedUserFilter) result = result.filter(l => l.userId === assignedUserFilter);
+    if (uploadTagFilter) result = result.filter(l => l.uploadTag === uploadTagFilter);
     setFilteredLeads(result);
-  }, [searchTerm, statusFilter, platformFilter, neetFilter, assignedUserFilter, leads]);
+  }, [searchTerm, statusFilter, platformFilter, neetFilter, assignedUserFilter, uploadTagFilter, leads]);
 
   const handleImport = async (parsedLeads) => {
     try {
       setImporting(true);
-      const existingPhones = new Set(leads.map(l => l.phone));
-      const newLeads = parsedLeads.filter(l => !existingPhones.has(l.phone));
-      const duplicates = parsedLeads.length - newLeads.length;
+      
+      const existingPhonesMap = new Map(leads.map(l => [l.phone, l]));
+      const newLeads = [];
+      const duplicateUpdates = [];
 
+      parsedLeads.forEach(parsed => {
+        if (existingPhonesMap.has(parsed.phone)) {
+          const existing = existingPhonesMap.get(parsed.phone);
+          // If the lead already exists, we can still update its tag if it's different
+          if (parsed.uploadTag && existing.uploadTag !== parsed.uploadTag) {
+            duplicateUpdates.push({ id: existing.id, uploadTag: parsed.uploadTag });
+          }
+        } else {
+          newLeads.push(parsed);
+        }
+      });
+
+      const duplicatesCount = parsedLeads.length - newLeads.length;
+
+      // 1. Add new leads
       if (newLeads.length > 0) {
         await addLeadsBatch(newLeads, currentUser.uid);
-        toast.success(`Imported ${newLeads.length} leads.${duplicates > 0 ? ` Skipped ${duplicates} duplicates.` : ''}`);
+      }
+
+      // 2. Update existing leads tags
+      if (duplicateUpdates.length > 0) {
+        const promises = duplicateUpdates.map(update => 
+          updateLeadDetails(update.id, { uploadTag: update.uploadTag }, currentUser.uid)
+        );
+        await Promise.all(promises);
+      }
+
+      if (newLeads.length > 0 || duplicateUpdates.length > 0) {
+        toast.success(`Imported ${newLeads.length} new leads. Updated tags for ${duplicateUpdates.length} existing leads.`);
         fetchLeads();
       } else {
-        toast.info(`No new leads. All ${duplicates} are duplicates (same phone).`);
+        toast.info(`No new leads. All ${duplicatesCount} are duplicates (no tag updates needed).`);
       }
     } catch (error) {
       toast.error('Error importing leads: ' + error.message);
@@ -449,6 +478,7 @@ const Leads = () => {
         'Neet Score': lead.neetScore || '',
         'Hostel Required': lead.hostelRequired || '',
         'Platform': lead.platform || '',
+        'Upload Tag': lead.uploadTag || '',
         'Campaign Name': lead.campaignName || '',
         'Ad Name': lead.adName || '',
         'CRM Status': lead.currentStatus,
@@ -509,8 +539,12 @@ const Leads = () => {
     }
   };
 
-  const clearFilters = () => { setSearchTerm(''); setStatusFilter(''); setPlatformFilter(''); setNeetFilter(''); };
-  const hasFilters = searchTerm || statusFilter || platformFilter || neetFilter;
+  const clearFilters = () => { setSearchTerm(''); setStatusFilter(''); setPlatformFilter(''); setNeetFilter(''); setUploadTagFilter(''); };
+  const hasFilters = searchTerm || statusFilter || platformFilter || neetFilter || uploadTagFilter;
+
+  const uniqueUploadTags = [...new Set(leads.map(l => l.uploadTag).filter(Boolean))].sort();
+  const uniquePlatforms = [...new Set(leads.map(l => l.platform).filter(Boolean))].sort();
+  const uniqueNeetStatuses = [...new Set(leads.map(l => l.neetStatus).filter(Boolean))].sort();
 
   return (
     <div className="space-y-5">
@@ -554,17 +588,27 @@ const Leads = () => {
         <select value={platformFilter} onChange={(e) => setPlatformFilter(e.target.value)}
           className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
           <option value="">All Platforms</option>
-          <option value="ig">Instagram</option>
-          <option value="fb">Facebook</option>
+          {uniquePlatforms.map(platform => (
+            <option key={platform} value={platform}>{platform}</option>
+          ))}
         </select>
 
         {/* NEET Status filter */}
         <select value={neetFilter} onChange={(e) => setNeetFilter(e.target.value)}
           className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
           <option value="">All NEET Types</option>
-          <option value="first_attempt">First Attempt</option>
-          <option value="repeater">Repeater</option>
-          <option value="second_repeater">2nd Repeater</option>
+          {uniqueNeetStatuses.map(status => (
+            <option key={status} value={status}>{status}</option>
+          ))}
+        </select>
+
+        {/* Upload Tag filter */}
+        <select value={uploadTagFilter} onChange={(e) => setUploadTagFilter(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+          <option value="">All Upload Tags</option>
+          {uniqueUploadTags.map(tag => (
+            <option key={tag} value={tag}>{tag}</option>
+          ))}
         </select>
 
         {/* Assigned Member filter (Admin Only) */}
